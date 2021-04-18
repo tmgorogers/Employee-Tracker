@@ -6,7 +6,7 @@
 ## Screenshot
 
 
-![Screenshot](/Employee-Tracker/employee-tracker.gif)
+[Screenshot](/Employee-Tracker/employee-tracker.gif)
 
 
 ## Mock-Up
