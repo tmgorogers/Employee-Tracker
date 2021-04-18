@@ -6,7 +6,7 @@
 ## Screenshot
 
 
-[Screenshot](./schema.png)
+![Screenshot](./schema.png)
 
 
 ## Mock-Up
