@@ -6,7 +6,7 @@
 ## Screenshot
 
 
-[Screenshot](/Employee Tracker/Employee-Tracker/schema.png)
+[Screenshot](/Employee-Tracker/schema.png)
 
 
 ## Mock-Up
