@@ -2,6 +2,8 @@ const mysql = require('mysql');
 const inquirer = require('inquirer');
 const util = require('util');
 const cTable = require('console.table');
+//const seed = require('seed');
+
 
 // create the connection information for the sql database
 
@@ -25,6 +27,9 @@ connection.connect((err) => {
     throw err;
   mergeWithDB();
   connection.query = util.promisify(connection.query);
+
+  //console.table(result)
+  //mergerwithDB();
 });
 
 
@@ -47,7 +52,12 @@ async function availableRole() {
     name: title,
     value: id,
   }));
+  //console.table(result)
+  //mergerwithDB();
+
 }
+
+
 
 async function availableEmployee() {
   let sql = "SELECT * FROM employee";
@@ -150,8 +160,8 @@ function add() {
 
       })
       .then(function (answer) {
-        const sql = 'INSERT INTO department (name) Values(?)';
-        connection.query(sql, answer.answer, function (err, res) {
+        const sql = 'INSERT INTO department (name) VALUES(?)';
+        connection.query(sql, answer.action, function (err, res) {
           if (err) throw err;
           console.log("Department added! Next...");
           mergeWithDB();
@@ -382,3 +392,4 @@ function update() {
   };
 }
 
+module.exports 
