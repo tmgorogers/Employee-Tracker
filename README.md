@@ -10,7 +10,7 @@
 
 
 ## Mock-Up
-[Video](https://drive.google.com/file/d/1Q2zhDJk5eRkXy6jq5DHz4FzGEuBNCpE0/view)
+[Video](https://drive.google.com/file/d/1o0fKHqqxdNf531AJW_9SMIExZeGzPvBT/view)
     
     # Table of Content: 
     *[Description](#description)
