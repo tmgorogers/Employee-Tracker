@@ -39,16 +39,17 @@ async function availableRole() {
     name: title,
     value: id,
   }));
+  return roleChoices;
   //console.table(result)
   //mergerwithDB();
 }
 
-async function availableEmployee() {
+async function availableEmployees() {
   let sql = "SELECT * FROM employee";
   const employees = await connection.query(sql);
 
   const employeeChoices = employees.map(({ id, first_name, last_name }) => ({
-    name: `${first_name} ${last_name}`,
+    name: `${first_name} ${last_name}`, value: id,
   }));
   return employeeChoices;
 }
@@ -196,15 +197,11 @@ async function addRole() {
 
 //Define addEmployee function
 async function addEmployee() {
-  const myRoleChoices = [];
-  const myManagerChoices = [];
-
   const roleIDTitle = {};
   const managerId = {};
 
-  await availableRoles();
-
-  await availableManagers();
+  const myRoleChoices =  await availableRole();
+  const myManagerChoices = await availableManager(); 
 
   const questions = [
     {
@@ -239,7 +236,7 @@ async function addEmployee() {
     },
   ];
 
-  function availableRoles() {
+  function availableRole() {
     let sql = "SELECT * FROM role";
     connection.query(sql, async function (err, result) {
       if (err) throw err;
@@ -250,7 +247,7 @@ async function addEmployee() {
     });
   }
 
-  function availableManagers() {
+  function availableManager() {
     let sql = "SELECT * FROM employee WHERE isManager=1";
 
     connection.query(sql, async function (err, result) {
@@ -297,7 +294,7 @@ function view() {
           break;
 
         case "Roles":
-          availableRoles();
+          availableRole();
           break;
 
         case "Employees":
@@ -316,7 +313,7 @@ function availableDepartment() {
     mergeWithDB();
   });
 }
-function availableRoles() {
+function availableRole() {
   const sql = "SELECT * FROM role";
   connection.query(sql, function (err, result) {
     if (err) throw err;
@@ -357,12 +354,12 @@ function update() {
     }
   });
 }
-async function updateEmployeeRole() {
-  let Choices =[];
+async function updateEmployeesRole() {
+  let Choices = [];
   let myRoleChoices = [];
   
-  myRoleChoices = {};
-  Choices = {};
+  myRoleChoices = await availableRole();
+  Choices = await availableEmployees();
 
   const answer = await inquirer.prompt([
     {
@@ -375,16 +372,17 @@ async function updateEmployeeRole() {
       name: "newRole",
       type: "rawlist",
       message: "What's the employee's new role",
-      choices:" myRoleChoices",
+      choices: myRoleChoices,
     },
     
   ]);
   connection.query(
-    "UPDATE employee SET role_id ='?' ",
+    "UPDATE employee SET role_id ='?'WHERE id='?'",
     [answer.newRole, answer.action],
     function (err, result) {
       if (err) throw err;
       console.log("updated! next.");
+      mergeWithDB();
     }
   );
 };
@@ -394,8 +392,8 @@ async function updateEmployeesManager(){
   let Choices = [];
   let myManagerChoices = [];
 
-  myManagerChoices = {};
-  Choices = {};
+  myManagerChoices = await availableManager();
+  Choices = await availableEmployees();
 
   const answer = await inquirer.prompt([
     {
@@ -408,12 +406,12 @@ async function updateEmployeesManager(){
       name: "newManager",
       type: "rawlist",
       message: "What's the employee's new manager",
-      choices:" myManagerChoices",
+      choices: myManagerChoices,
     },
     
   ]);
   connection.query(
-    "UPDATE employee SET superviserORmanager_id='?'  WHERE id='?' ",
+    "UPDATE employee SET superviserORmanager_id='?'  WHERE id='?'",
     [answer.newManager, answer.action],
     function (err, result) {
       if (err) throw err;
@@ -444,5 +442,71 @@ function toDelete() {
           break;
       }
     });
+    async function deleteDepartments(){
+      const listOfDepartments = [];
+
+      listOfDepartments = await availableDepartment();
+
+      await inquirer
+      .prompt({
+        name: "action",
+        type: "rawist",
+        message: "Which department would like to delete",
+        choices: listOfDepartments,
+      })
+      .then(function(answer){
+        connection.query("Delete FROM department WHERE id='?'",
+        answer.action,
+        function(err, result){
+          if (err) throw err;
+          console.log('deleted! next...');
+          mergeWithDB();
+        })
+      })
+    }
+    async function deleteRoles(){
+      let myRoleChoices = [];
+
+      myRoleChoices = await availableRole();
+        await inquirer
+        .prompt({
+          name: "action",
+          type: "rawlist",
+          message: "Which role would you like to delete",
+          choices: myRoleChoices,
+        })
+        .then(function(answer){
+          connection.query("Delete FROM role WHERE id='?'",
+          answer.action,
+          function(err, result){
+            if (err) throw err;
+            console.log('deleted! next...');
+            mergeWithDB();
+          })
+        })
+    }
+    async function deleteEmployees() {
+      let Choices = [];
+
+      Choices = await availableEmployees;
+
+      await inquirer
+      .prompt({
+        name: "action",
+        type: "rawlist",
+        message: "Which employee would you like to delete",
+        choices: Choices,
+      })
+      .then(function(answer){
+        connection.query("Delete FROM employee WHERE id='?'",
+        answer.action,
+        function(err, result){
+          if (err) throw err;
+          console.log('deleted! next...');
+          mergeWithDB();
+        })
+      })
+
+    }
 }
 module.exports;
