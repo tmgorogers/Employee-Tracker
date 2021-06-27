@@ -3,7 +3,7 @@ const inquirer = require("inquirer");
 const util = require("util");
 const cTable = require("console.table");
 const { nextTick } = require("process");
-//const seed = require('seed');
+const seed = require("seed");
 
 // create the connection information for the sql database
 
@@ -24,14 +24,15 @@ const connection = mysql.createConnection({
 //Connect to MySQL
 connection.connect((err) => {
   if (err) throw err;
-  mergeWithDB();
+
   connection.query = util.promisify(connection.query);
+  mergeWithDB();
 
   //console.table(result)
   //mergerwithDB();
 });
 
-async function availableRole() {
+async function availableRoles() {
   let sql = "SELECT * FROM role";
   const roles = await connection.query(sql);
 
@@ -39,6 +40,7 @@ async function availableRole() {
     name: title,
     value: id,
   }));
+  console.log({ roleChoices });
   return roleChoices;
   //console.table(result)
   //mergerwithDB();
@@ -49,12 +51,13 @@ async function availableEmployees() {
   const employees = await connection.query(sql);
 
   const employeeChoices = employees.map(({ id, first_name, last_name }) => ({
-    name: `${first_name} ${last_name}`, value: id,
+    name: `${first_name} ${last_name}`,
+    value: id,
   }));
   return employeeChoices;
 }
 
-async function availableManager() {
+async function availableManagers() {
   let sql = "SELECT * FROM employee WHERE isManager=1";
   const managers = await connection.query(sql);
 
@@ -200,8 +203,8 @@ async function addEmployee() {
   const roleIDTitle = {};
   const managerId = {};
 
-  const myRoleChoices =  await availableRole();
-  const myManagerChoices = await availableManager(); 
+  const myRoleChoices = await availableRoles();
+  const myManagerChoices = await availableManagers();
 
   const questions = [
     {
@@ -214,12 +217,11 @@ async function addEmployee() {
       type: "input",
       message: "What the employee's last name?",
     },
-
     {
       name: "roleID",
       type: "rawlist",
       message: "Please select the role/position for this employee?",
-      choices: myRoleChoices,
+      choices: myRoleChoices.map((role) => role.value),
     },
 
     {
@@ -232,11 +234,11 @@ async function addEmployee() {
       name: "managerId",
       type: "rawlist",
       message: "Please select the manager/supervise of this employee?",
-      choices: myManagerChoices,
+      choices: myManagerChoices.map((manager) => manager.name),
     },
   ];
 
-  function availableRole() {
+  /*function availableRole() {
     let sql = "SELECT * FROM role";
     connection.query(sql, async function (err, result) {
       if (err) throw err;
@@ -244,6 +246,7 @@ async function addEmployee() {
         myRoleChoices.push(result[i].title);
         roleIDTitle[result[i].title] = result[i].id;
       }
+      //return myRoleChoices;
     });
   }
 
@@ -257,18 +260,27 @@ async function addEmployee() {
         managerId[result[i].first_name] = result[i].id;
         managerId[result[i].last_name] = result[i].id;
       }
+      return myManagerChoices;
     });
-  }
+  }*/
 
   const answer = await inquirer.prompt(questions);
-  const res = await connection.query(
+
+  const role = myRoleChoices.find((role) => role.title === answer.roleID);
+  const manager = myManagerChoices.find(
+    (manager) => manager.name === answer.managerID
+  );
+  console.log(role, manager);
+  const res = connection.query(
     "INSERT INTO employee (first_name, last_name, role_id, isManager, superviserORmanager_id)VALUES (?,?,?,?,?)",
     [
       answer.firstName,
       answer.lastName,
-      roleIDTitle[answer.roleID],
+      //answer.roleIdTitle,
+      role.value,
       answer.manager,
-      managerId[answer.managerID],
+      //answer.managerId,
+      manager.value,
     ]
   );
   console.log(
@@ -290,7 +302,7 @@ function view() {
     .then(function (answer) {
       switch (answer.action) {
         case "Departments":
-          availableDepartment();
+          availableDepartments();
           break;
 
         case "Roles":
@@ -303,9 +315,9 @@ function view() {
       }
     });
 }
-function availableDepartment() {
+function availableDepartments() {
   let sql = "SELECT * FROM department";
-  connection.query(sql, async function (err, result) {
+  connection.query(sql, function (err, result) {
     if (err) throw err;
     for (let i = 0; i < result.length; i++) {
       console.log(result[i].name);
@@ -319,8 +331,8 @@ function availableRole() {
     if (err) throw err;
     for (let i = 0; i < result.length; i++) {
       console.log(result[i].title);
+      mergeWithDB();
     }
-    mergeWithDB();
   });
 }
 function availableEmployee() {
@@ -329,36 +341,37 @@ function availableEmployee() {
     if (err) throw err;
     for (let i = 0; i < result.length; i++) {
       console.log(`${result[i].first_name} ${result[i].last_name}`);
+      mergeWithDB();
     }
-    mergeWithDB();
   });
 }
 
 //Define general Update employee's role
 function update() {
-  inquirer.prompt({
-    name: "action",
-    type: "rawlist",
-    message: "What would you like to update",
-    choices: ["Employee's Role", "Employee's Manager"],
-  })
-  .then(function (answer){
-    switch (answer.action){
-      case "Employee's Role":
-        updateEmployeesRole();
-        break;
+  inquirer
+    .prompt({
+      name: "action",
+      type: "rawlist",
+      message: "What would you like to update",
+      choices: ["Employee's Role", "Employee's Manager"],
+    })
+    .then(function (answer) {
+      switch (answer.action) {
+        case "Employee's Role":
+          updateEmployeesRole();
+          break;
 
         case "Employee's Manager":
           updateEmployeesManager();
           break;
-    }
-  });
+      }
+    });
 }
 async function updateEmployeesRole() {
   let Choices = [];
   let myRoleChoices = [];
-  
-  myRoleChoices = await availableRole();
+
+  myRoleChoices = await availableRoles();
   Choices = await availableEmployees();
 
   const answer = await inquirer.prompt([
@@ -366,18 +379,17 @@ async function updateEmployeesRole() {
       name: "action",
       type: "rawlist",
       message: "Which employee would you like to update",
-      choices: Choices,
+      choices: ["Tierra Rogers", "Chris Bo", "Zambia Rogers"],
     },
     {
       name: "newRole",
       type: "rawlist",
       message: "What's the employee's new role",
-      choices: myRoleChoices,
+      choices: ["Software Engineer", "Sales", "HR"],
     },
-    
   ]);
   connection.query(
-    "UPDATE employee SET role_id ='?'WHERE id='?'",
+    "UPDATE employee SET role_id ='?' WHERE id='?'",
     [answer.newRole, answer.action],
     function (err, result) {
       if (err) throw err;
@@ -385,10 +397,9 @@ async function updateEmployeesRole() {
       mergeWithDB();
     }
   );
-};
+}
 
-
-async function updateEmployeesManager(){
+async function updateEmployeesManager() {
   let Choices = [];
   let myManagerChoices = [];
 
@@ -408,7 +419,6 @@ async function updateEmployeesManager(){
       message: "What's the employee's new manager",
       choices: myManagerChoices,
     },
-    
   ]);
   connection.query(
     "UPDATE employee SET superviserORmanager_id='?'  WHERE id='?'",
@@ -419,8 +429,8 @@ async function updateEmployeesManager(){
       mergeWithDB();
     }
   );
-  }
-  
+}
+
 function toDelete() {
   inquirer
     .prompt({
@@ -442,71 +452,77 @@ function toDelete() {
           break;
       }
     });
-    async function deleteDepartments(){
-      const listOfDepartments = [];
+  async function deleteDepartments() {
+    const listOfDepartments = [];
 
-      listOfDepartments = await availableDepartment();
+    listOfDepartments = availableDepartments();
 
-      await inquirer
+    await inquirer
       .prompt({
         name: "action",
         type: "rawist",
         message: "Which department would like to delete",
         choices: listOfDepartments,
       })
-      .then(function(answer){
-        connection.query("Delete FROM department WHERE id='?'",
-        answer.action,
-        function(err, result){
-          if (err) throw err;
-          console.log('deleted! next...');
-          mergeWithDB();
-        })
-      })
-    }
-    async function deleteRoles(){
-      let myRoleChoices = [];
-
-      myRoleChoices = await availableRole();
-        await inquirer
-        .prompt({
-          name: "action",
-          type: "rawlist",
-          message: "Which role would you like to delete",
-          choices: myRoleChoices,
-        })
-        .then(function(answer){
-          connection.query("Delete FROM role WHERE id='?'",
+      .then(function (answer) {
+        connection.query(
+          "Delete FROM department WHERE id='?'",
           answer.action,
-          function(err, result){
+          function (err, result) {
             if (err) throw err;
-            console.log('deleted! next...');
+            console.log("deleted! next...");
             mergeWithDB();
-          })
-        })
-    }
-    async function deleteEmployees() {
-      let Choices = [];
+          }
+        );
+      });
+  }
+  async function deleteRoles() {
+    let myRoleChoices = [];
 
-      Choices = await availableEmployees;
+    myRoleChoices = await availableRole();
 
-      await inquirer
+    await inquirer
+      .prompt({
+        name: "action",
+        type: "rawlist",
+        message: "Which role would you like to delete",
+        choices: myRoleChoices,
+      })
+      .then(function (answer) {
+        connection.query(
+          "Delete FROM role WHERE id='?'",
+          answer.action,
+          function (err, result) {
+            if (err) throw err;
+            console.log("deleted! next...");
+            mergeWithDB();
+          }
+        );
+      });
+  }
+  async function deleteEmployees() {
+    let Choices = [];
+
+    Choices = availableEmployees;
+
+    await inquirer
       .prompt({
         name: "action",
         type: "rawlist",
         message: "Which employee would you like to delete",
         choices: Choices,
       })
-      .then(function(answer){
-        connection.query("Delete FROM employee WHERE id='?'",
-        answer.action,
-        function(err, result){
-          if (err) throw err;
-          console.log('deleted! next...');
-          mergeWithDB();
-        })
-      })
-
-    }
+      .then(function (answer) {
+        connection.query(
+          "Delete FROM employee WHERE id='?'",
+          answer.action,
+          function (err, result) {
+            if (err) throw err;
+            console.log("deleted! next...");
+            mergeWithDB();
+          }
+        );
+      });
+  }
 }
 module.exports;

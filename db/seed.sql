@@ -67,37 +67,37 @@ VALUES
 INSERT INTO employee
 (first_name, last_name, role_id, isManager, superviserORManager_Id)
 VALUES
-("Zambia", "Rogers", 1, false, 1);
+("Zambia", "Rogers", 2, false, 1);
 
 INSERT INTO employee
 (first_name, last_name, role_id, isManager)
 VALUES
-("Chris", "Bo", 2, true);
+("Chris", "Bo", 3, true);
 
 INSERT INTO employee
 (first_name, last_name, role_id, isManager, superviserORManager_id)
 VALUES
-("Issa", "Rae", 2, false, 2);
+("Issa", "Rae", 4, false, 2);
 
 INSERT INTO employee
 (first_name, last_name, role_id, isManager)
 VALUES
-("Tab", "Hill", 3, true);
+("Tab", "Hill", 5, true);
 
 INSERT INTO employee
 (first_name, last_name, role_id, isManager, superviserORManager_id)
 VALUES
-("Brent", "Roger", 3, false, 3);
+("Brent", "Roger", 6, false, 3);
 
 INSERT INTO employee
 (first_name, last_name, role_id, isManager)
 VALUES
-("Ann", "Mae", 4, true);
+("Ann", "Mae", 7, true);
 
 INSERT INTO employee
 (first_name, last_name, role_id, isManager, superviserORManager_id)
 VALUES
-("Carl", "Turner", 4, false, 4);
+("Carl", "Turner", 8, false, 4);
 
 
 

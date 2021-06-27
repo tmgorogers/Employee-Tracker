@@ -14,6 +14,7 @@
     "console.table": "^0.10.0",
     "inquirer": "^8.0.0",
     "mysql": "^2.18.1",
+    "seed": "^0.4.4",
     "seed-js": "0.0.11"
   }
 }
