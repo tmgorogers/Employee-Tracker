@@ -43,7 +43,7 @@ async function availableRoles() {
   console.log({ roleChoices });
   return roleChoices;
   //console.table(result)
-  //mergerwithDB();
+  mergerwithDB();
 }
 
 async function availableEmployees() {
@@ -231,7 +231,7 @@ async function addEmployee() {
     },
 
     {
-      name: "managerId",
+     name: "managerId",
       type: "rawlist",
       message: "Please select the manager/supervise of this employee?",
       choices: myManagerChoices.map((manager) => manager.name),
@@ -330,7 +330,7 @@ function availableRole() {
   connection.query(sql, function (err, result) {
     if (err) throw err;
     for (let i = 0; i < result.length; i++) {
-      console.log(result[i].title);
+      //console.log(result[i].title);
       mergeWithDB();
     }
   });
