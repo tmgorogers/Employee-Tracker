@@ -18,7 +18,7 @@ const connection = mysql.createConnection({
 
   // Your password
   password: "blessed2021$",
-  database: "employeeTracker_DB",
+  database: "employees",
 });
 
 //Connect to MySQL
@@ -231,7 +231,7 @@ async function addEmployee() {
     },
 
     {
-     name: "managerId",
+      name: "managerId",
       type: "rawlist",
       message: "Please select the manager/supervise of this employee?",
       choices: myManagerChoices.map((manager) => manager.name),
@@ -389,8 +389,8 @@ async function updateEmployeesRole() {
     },
   ]);
   connection.query(
-    "UPDATE employee SET role_id ='?' WHERE id='?'",
-    [answer.newRole, answer.action],
+    "UPDATE employee SET role_id= ''?'' 'WHERE id=`'?'`' ",
+        [answer.newRole, answer.action],
     function (err, result) {
       if (err) throw err;
       console.log("updated! next.");
@@ -403,7 +403,7 @@ async function updateEmployeesManager() {
   let Choices = [];
   let myManagerChoices = [];
 
-  myManagerChoices = await availableManager();
+  myManagerChoices = await availableManagers();
   Choices = await availableEmployees();
 
   const answer = await inquirer.prompt([

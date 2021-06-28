@@ -1,4 +1,4 @@
-USE employeeTracker_db;
+USE employees;
 
 --add departments
 INSERT INTO department
@@ -12,10 +12,12 @@ VALUES
 INSERT INTO department
 (name)
 VALUES
-("Engineering")
+("Engineering");
 INSERT INTO department
 (name)
+VALUES
 ('Sales');
+
 
 --add roles
 INSERT INTO role
