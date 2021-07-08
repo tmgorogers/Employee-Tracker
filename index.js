@@ -31,8 +31,18 @@ connection.connect((err) => {
   //console.table(result)
   //mergerwithDB();
 });
+async function availableDepartments() {
+  let sql = "Select * FROM department";
+  const departments = await connection.query(sql);
 
-async function availableRoles() {
+  const departmentChoices = departments.map(({ id, name }) => ({
+    name: name,
+    value: id,
+  }));
+  return departmentChoices;
+}
+
+async function availableRole() {
   let sql = "SELECT * FROM role";
   const roles = await connection.query(sql);
 
@@ -42,8 +52,9 @@ async function availableRoles() {
   }));
   console.log({ roleChoices });
   return roleChoices;
+
   //console.table(result)
-  mergerwithDB();
+  //mergerwithDB();
 }
 
 async function availableEmployees() {
@@ -58,7 +69,7 @@ async function availableEmployees() {
 }
 
 async function availableManagers() {
-  let sql = "SELECT * FROM employee WHERE isManager=1";
+  let sql = "SELECT * FROM employee WHERE isManager='1'";
   const managers = await connection.query(sql);
 
   const managerChoices = managers.map(({ id, first_name, last_name }) => ({
@@ -148,7 +159,8 @@ function add() {
 }
 
 //Define addRole function
-async function addRole() {
+
+function addRole() {
   const myChoices = [];
   const departmentIdName = {};
 
@@ -175,7 +187,7 @@ async function addRole() {
   //function to provide departments as choices and reference it ID to the role
   function availableDepartments() {
     let sql = "SELECT * FROM department";
-    connection.query(sql, async function (err, result) {
+    connection.query(sql, function (err, result) {
       if (err) throw err;
       for (let i = 0; i < result.length; i++) {
         myChoices.push(result[i].name);
@@ -203,7 +215,7 @@ async function addEmployee() {
   const roleIDTitle = {};
   const managerId = {};
 
-  const myRoleChoices = await availableRoles();
+  const myRoleChoices = await availableRole();
   const myManagerChoices = await availableManagers();
 
   const questions = [
@@ -271,7 +283,7 @@ async function addEmployee() {
     (manager) => manager.name === answer.managerID
   );
   console.log(role, manager);
-  const res = connection.query(
+  const res = await connection.query(
     "INSERT INTO employee (first_name, last_name, role_id, isManager, superviserORmanager_id)VALUES (?,?,?,?,?)",
     [
       answer.firstName,
@@ -310,7 +322,7 @@ function view() {
           break;
 
         case "Employees":
-          availableEmployee();
+          availableEmployees();
           break;
       }
     });
@@ -330,12 +342,12 @@ function availableRole() {
   connection.query(sql, function (err, result) {
     if (err) throw err;
     for (let i = 0; i < result.length; i++) {
-      //console.log(result[i].title);
+      console.log(result[i].title);
       mergeWithDB();
     }
   });
 }
-function availableEmployee() {
+function availableEmployees() {
   let sql = "SELECT * FROM employee";
   connection.query(sql, function (err, result) {
     if (err) throw err;
@@ -371,7 +383,7 @@ async function updateEmployeesRole() {
   let Choices = [];
   let myRoleChoices = [];
 
-  myRoleChoices = await availableRoles();
+  myRoleChoices = await availableRole();
   Choices = await availableEmployees();
 
   const answer = await inquirer.prompt([
@@ -390,7 +402,7 @@ async function updateEmployeesRole() {
   ]);
   connection.query(
     "UPDATE employee SET role_id= ''?'' 'WHERE id=`'?'`' ",
-        [answer.newRole, answer.action],
+    [answer.newRole, answer.action],
     function (err, result) {
       if (err) throw err;
       console.log("updated! next.");
@@ -455,7 +467,7 @@ function toDelete() {
   async function deleteDepartments() {
     const listOfDepartments = [];
 
-    listOfDepartments = availableDepartments();
+    listOfDepartments = await availableDepartments();
 
     await inquirer
       .prompt({
@@ -503,7 +515,7 @@ function toDelete() {
   async function deleteEmployees() {
     let Choices = [];
 
-    Choices = availableEmployees;
+    Choices = await availableEmployees();
 
     await inquirer
       .prompt({
